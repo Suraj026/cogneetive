@@ -1,9 +1,10 @@
 import os
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, BackgroundTasks, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from backend.models.model import QueryResponse, QueryRequest
 from source.slack.query import query_slack
+from source.slack.graph import generate_graph
 
 app = FastAPI(title="All-in-one")
 
@@ -60,3 +61,14 @@ async def run_query(query_request: QueryRequest) -> QueryResponse:
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"Error processing query: {str(e)}"
         )
+    
+@app.post("/api/graph/regenerate")
+async def regenerate_graph(background_tasks: BackgroundTasks):
+    """Regenerate the Slack graph in the background."""
+    background_tasks.add_task(generate_graph)
+    return JSONResponse(
+        status_code = status.HTTP_202_ACCEPTED,
+        content = {
+            "message": "Graph regeneration started. Check /api/graph after a few moments."
+        }
+    )

@@ -1,9 +1,10 @@
 import os
+import tempfile
 from fastapi.testclient import TestClient
 from unittest.mock import patch, AsyncMock
-from backend.main import app
+from backend.main import app as app2
 
-client = TestClient(app)
+client = TestClient(app2)
 
 def test_app_exists():
     """Test that the FastAPI app is created and running."""
@@ -16,10 +17,6 @@ def test_graph_returns_html_when_file_exists(tmp_path):
     graph_path.write_text("<html><body>Graph</body></html>")
     
     with patch("backend.main.GRAPH_FILE_PATH", str(graph_path)):
-        from backend.main import app as app2
-        from fastapi.testclient import TestClient
-
-        client = TestClient(app2)
         response = client.get("/api/graph")
         assert response.status_code == 200
         assert response.headers["content-type"] == "text/html; charset=utf-8"
@@ -27,12 +24,8 @@ def test_graph_returns_html_when_file_exists(tmp_path):
 
 def test_graph_returns_404_when_file_missing():
     """When the graph HTML file doesn't exist, the endpoint should return 404."""
-    import tempfile
     missing = os.path.join(tempfile.gettempdir(), "non_existent_graph.html")
     with patch("backend.main.GRAPH_FILE_PATH", missing):
-        from backend.main import app as app2
-        from fastapi.testclient import TestClient
-
         client = TestClient(app2)
         response = client.get("/api/graph")
         assert response.status_code == 404
@@ -45,10 +38,6 @@ def test_query_returns_results():
         return_value=["result1", "result2"]
     )
     with patch("source.slack.query.cognee.recall", mock_recall):
-        from backend.main import app as app2
-        from fastapi.testclient import TestClient
-        client = TestClient(app2)
-
         response = client.post(
             "/api/query",
             json={"query": "test query"}
@@ -62,10 +51,6 @@ def test_query_returns_results():
 
 def test_query_returns_422_for_empty_query():
     """Test that the /query endpoint returns 422 when an empty query is provided."""
-    from backend.main import app as app2
-    from fastapi.testclient import TestClient
-    client = TestClient(app2)
-
     response = client.post(
         "/api/query",
         json={"query": "   "}  
@@ -76,10 +61,6 @@ def test_query_returns_422_for_empty_query():
 
 def test_query_missing_query_field():
     """Test that the /query endpoint returns 422 when the query field is missing."""
-    from backend.main import app as app2
-    from fastapi.testclient import TestClient
-    client = TestClient(app2)
-
     response = client.post(
         "/api/query",
         json={}  
@@ -92,10 +73,6 @@ def test_query_handles_cognee_error():
     """Test that the /query endpoint returns 500 when cognee.recall raises an exception."""
     mock_recall = AsyncMock(side_effect = Exception("Cognee error"))
     with patch("source.slack.query.cognee.recall", mock_recall):
-        from backend.main import app as app2
-        from fastapi.testclient import TestClient
-        client = TestClient(app2)
-
         response = client.post(
             "/api/query",
             json={"query": "test query"}
@@ -103,3 +80,17 @@ def test_query_handles_cognee_error():
         assert response.status_code == 500
         data = response.json()
         assert "detail" in data
+
+def test_regenerate_graph_returns_accepted():
+    """Test that the /graph/regenerate endpoint returns 202 Accepted."""
+    response = client.post("/api/graph/regenerate")
+    assert response.status_code == 202
+    data = response.json()
+    assert data["message"] == "Graph regeneration started. Check /api/graph after a few moments."
+
+def test_regenerate_graph_background_task():
+    """Test that the /graph/regenerate endpoint adds a background task."""
+    with patch("backend.main.generate_graph") as mock_generate_graph:
+        response = client.post("/api/graph/regenerate")
+        assert response.status_code == 202
+        mock_generate_graph.assert_called_once()

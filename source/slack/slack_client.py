@@ -48,8 +48,8 @@ def fetch_slack_channel(client: WebClient, channel_id: str, user_map: dict) -> s
     return "".join(lines)
 
 
-async def main():
-    """Main function to fetch messages from all specified Slack channels."""
+async def generate_slack_documents():
+    """Generate documents from Slack messages."""
     client = WebClient(token=SLACK_BOT_TOKEN)
 
     users_response = client.users_list()
@@ -69,7 +69,3 @@ async def main():
         await cognee.remember(doc, dataset_name="slack_data")
 
     console.print("[green]Done fetching and storing Slack messages.[/green]")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
