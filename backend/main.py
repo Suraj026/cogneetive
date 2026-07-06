@@ -1,7 +1,9 @@
 import os
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from backend.models.model import QueryResponse, QueryRequest
+from source.slack.query import query_slack
 
 app = FastAPI(title="All-in-one")
 
@@ -13,7 +15,7 @@ app.add_middleware(
 )
 
 GRAPH_FILE_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "source", ".artifacts", "slack_graph.html"
+    os.path.dirname(__file__), "..", "source", "slack", ".artifacts", "slack_graph.html"
 )
 
 @app.get("/")
@@ -40,3 +42,21 @@ async def get_graph():
         status_code = status.HTTP_200_OK,
         content = content
     )
+
+@app.post("/api/query", response_model=QueryResponse)
+async def run_query(query_request: QueryRequest) -> QueryResponse:
+    """Run a query against the Slack graph."""
+    if not query_request.query.strip():
+        raise HTTPException(
+            status_code = status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail = "Query cannot be empty."
+        )
+    
+    try:
+        results = await query_slack(query_request)
+        return QueryResponse(results=results)
+    except Exception as e:
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = f"Error processing query: {str(e)}"
+        )

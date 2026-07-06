@@ -1,17 +1,16 @@
 import cognee
 import asyncio
 from rich.console import Console
+from backend.models.model import QueryRequest
 
 console = Console()
 
-async def main():
+async def query_slack(query_request: QueryRequest):
     console.print("[green] Cognee query[/green]")
     result = await cognee.recall(
-            "who was assigned to work on deployment and what was the issue?",
+            query_request.query,
             datasets=["slack_data"],
         )
-    for r in result:
-        console.print(r)
+
+    return [r for r in result]
     
-if __name__ == "__main__":
-    asyncio.run(main())
