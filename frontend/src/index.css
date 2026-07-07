@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #10131a;
+  --color-surface-dim: #10131a;
+  --color-surface-bright: #363940;
+  --color-surface-glass: rgba(26, 31, 38, 0.7);
+  --color-surface-base: #1a1f26;
+  --color-surface-container: #1d2026;
+  --color-surface-container-high: #272a31;
+  --color-surface-container-highest: #32353c;
+  --color-surface-container-low: #191c22;
+  --color-surface-container-lowest: #0b0e14;
+  --color-surface-variant: #32353c;
+  --color-on-surface: #e1e2eb;
+  --color-on-surface-variant: #bbc9cf;
+  --color-on-background: #e1e2eb;
+  --color-background: #10131a;
+  --color-primary: #a4e6ff;
+  --color-primary-container: #00d1ff;
+  --color-on-primary: #003543;
+  --color-on-primary-container: #00566a;
+  --color-primary-fixed: #b7eaff;
+  --color-primary-fixed-dim: #4cd6ff;
+  --color-secondary-container: #7000ff;
+  --color-on-secondary: #3c0090;
+  --color-on-secondary-container: #ddcdff;
+  --color-secondary: #d1bcff;
+  --color-secondary-fixed: #e9ddff;
+  --color-node-active: #00d1ff;
+  --color-node-relation: #7000ff;
+  --color-border-low: rgba(255, 255, 255, 0.1);
+  --color-outline: #859399;
+  --color-outline-variant: #3c494e;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #10131a;
+  color: #e1e2eb;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Material Symbols defaults */
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 20;
+  line-height: 1;
+}
