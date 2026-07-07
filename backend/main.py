@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from backend.models.model import QueryResponse, QueryRequest
 from source.slack.query import query_slack
-from source.slack.graph import generate_graph
+from source.slack.graph import DatasetNotFoundError, generate_graph, get_graph_stats
 
 app = FastAPI(title="All-in-one")
 
@@ -72,3 +72,29 @@ async def regenerate_graph(background_tasks: BackgroundTasks):
             "message": "Graph regeneration started. Check /api/graph after a few moments."
         }
     )
+
+@app.get("/api/graph/stats")
+async def graph_stats(dataset: str):
+    """Return graph metrics (nodes, edges, etc.). for the specified dataset."""
+    try:
+        stats = await get_graph_stats(dataset)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, 
+            content=stats
+        )
+    except DatasetNotFoundError as e:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "error": "dataset_not_found",
+                "detail": str(e),
+            },
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "error": "stats_error",
+                "detail": f"Failed to fetch graph stats: {str(e)}",
+            },
+        )

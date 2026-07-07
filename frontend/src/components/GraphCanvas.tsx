@@ -1,5 +1,10 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { getGraphUrl, fetchGraphStats, regenerateGraph, type GraphStats } from "../api/client";
+import {
+  getGraphUrl,
+  fetchGraphStats,
+  regenerateGraph,
+  type GraphStats,
+} from "../api/client";
 
 interface GraphCanvasProps {
   refreshKey: number;
@@ -12,7 +17,9 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
 
   // Fetch stats on mount, then only on regenerate
   useEffect(() => {
-    fetchGraphStats().then((data) => { if (data) setStats(data); });
+    fetchGraphStats().then((data) => {
+      if (data) setStats(data);
+    });
   }, []);
 
   // Combined refresh key — from parent (queries) or internal (regenerate)
@@ -28,8 +35,18 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
     setIsRegenerating(true);
     try {
       await regenerateGraph();
+
+      // Poll stats until they return valid data (background task runs async)
+      let data: GraphStats | null = null;
+      for (let attempt = 0; attempt < 6; attempt++) {
+        // Wait 1s between retries — gives the background task time to finish
+        await new Promise((r) => setTimeout(r, 1000));
+        data = await fetchGraphStats("slack_data");
+        if (data && data.total_nodes > 0) break;
+      }
+
+      // Now refresh the iframe and update stats
       setInternalRefresh((k) => k + 1);
-      const data = await fetchGraphStats();
       if (data) setStats(data);
     } catch {
       // Silently handle — backend might not be running

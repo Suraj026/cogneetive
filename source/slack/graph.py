@@ -1,9 +1,17 @@
 import os
-import asyncio
+from datetime import datetime, timezone
 from cognee.api.v1.visualize.visualize import visualize_graph
+from cognee.infrastructure.databases.graph import get_graph_engine
+from cognee.modules.users.methods import get_default_user
+from cognee.modules.data.methods import get_authorized_existing_datasets
+from cognee.context_global_variables import set_database_global_context_variables
 from rich.console import Console
 
 console = Console()
+
+class DatasetNotFoundError(Exception):
+    """Custom exception for when a dataset is not found."""
+    pass
 
 async def generate_graph():
     output_path = os.path.join(
@@ -13,3 +21,29 @@ async def generate_graph():
 
     await visualize_graph(output_path, dataset="slack_data")
     console.print(f"[green]Graph generated and saved to {output_path}[/green]")
+
+async def get_graph_stats(dataset_name: str):
+    """Fetch graph metrics from cognee"""
+    user = await get_default_user()
+    dataset = await get_authorized_existing_datasets([dataset_name], "read", user)
+    if not dataset:
+        raise DatasetNotFoundError(
+            f"Dataset '{dataset_name}' not found. "
+            f"Run data ingestion for {dataset_name} first."
+        )
+    
+    async with set_database_global_context_variables(
+        dataset[0].id,
+        dataset[0].owner_id,
+    ):
+        graph_engine = await get_graph_engine()
+        metrics = await graph_engine.get_graph_metrics()
+
+        return {
+            "total_nodes": metrics.get("num_nodes", 0),
+            "active_edges": metrics.get("num_edges", 0),
+            "mean_degree": metrics.get("mean_degree"),
+            "edge_density": metrics.get("edge_density", 0),
+            "num_connected_components": metrics.get("num_connected_components", 0),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+        }

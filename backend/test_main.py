@@ -94,3 +94,45 @@ def test_regenerate_graph_background_task():
         response = client.post("/api/graph/regenerate")
         assert response.status_code == 202
         mock_generate_graph.assert_called_once()
+
+def test_graph_stats_with_dataset():
+    """Test that /api/graph/stats?dataset=slack_data returns scoped stats."""
+    mock_metrics = {
+        "num_nodes": 42,
+        "num_edges": 108,
+    }
+
+    with patch(
+        "backend.main.get_graph_stats",
+        new=AsyncMock(return_value=mock_metrics),
+    ):
+        response = client.get("/api/graph/stats?dataset=slack_data")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data["num_nodes"] == 42
+        assert data["num_edges"] == 108
+
+
+def test_graph_stats_dataset_not_found():
+    """Test that /api/graph/stats returns 404 for a non-existent dataset."""
+    from source.slack.graph import DatasetNotFoundError
+    with patch(
+        "backend.main.get_graph_stats",
+        side_effect=DatasetNotFoundError("Dataset 'fastapi' not found."),
+    ):
+        response = client.get("/api/graph/stats?dataset=fastapi")
+        assert response.status_code == 404
+        data = response.json()
+        assert data["error"] == "dataset_not_found"
+
+def test_graph_stats_returns_500_on_error():
+    """Test that /api/graph/stats returns 500 when stats fail unexpectedly."""
+    with patch(
+        "backend.main.get_graph_stats",
+        side_effect=Exception("Cognee error"),
+    ):
+        response = client.get("/api/graph/stats?dataset=slack_data")
+        assert response.status_code == 500
+        data = response.json()
+        assert data["error"] == "stats_error"

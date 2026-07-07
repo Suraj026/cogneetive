@@ -33,12 +33,14 @@ export async function regenerateGraph(): Promise<void> {
   }
 }
 
-export async function fetchGraphStats(): Promise<GraphStats | null> {
+export async function fetchGraphStats(
+  dataset?: string,
+): Promise<GraphStats | null> {
   try {
-    const res = await fetch("/api/graph/stats");
-    if (res.status === 404) return null;
+    const params = dataset ? `?dataset=${encodeURIComponent(dataset)}` : "";
+    const res = await fetch(`/api/graph/stats${params}`);
     if (!res.ok) return null;
-    return res.json();
+    return await res.json();
   } catch {
     return null;
   }
