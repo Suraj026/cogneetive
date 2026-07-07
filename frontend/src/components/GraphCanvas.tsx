@@ -17,7 +17,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
 
   // Fetch stats on mount, then only on regenerate
   useEffect(() => {
-    fetchGraphStats().then((data) => {
+    fetchGraphStats("slack_data").then((data) => {
       if (data) setStats(data);
     });
   }, []);
