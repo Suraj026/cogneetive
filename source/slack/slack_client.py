@@ -1,20 +1,14 @@
 import os
-import asyncio
 import cognee
 from slack_sdk import WebClient
 from rich.console import Console
+from config.sources import SLACK_CHANNEL_IDS
 
 console = Console()
 
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 
-SLACK_CHANNEL_ID = [
-    "C0BG0BFJSEL",   # general
-    "C0BG0CM37DW",   # incidents
-    "C0BF42NC9T8",   # design
-    "C0BF2NEUCUV",   # engineering
-    "C0BF42MM90W",   # product
-]
+SLACK_CHANNEL_IDS = SLACK_CHANNEL_IDS
 
 
 def fetch_slack_channel(client: WebClient, channel_id: str, user_map: dict) -> str:
@@ -59,7 +53,7 @@ async def generate_slack_documents():
     }
 
     documents = []
-    for channel_id in SLACK_CHANNEL_ID:
+    for channel_id in SLACK_CHANNEL_IDS:
         try:
             documents.append(fetch_slack_channel(client, channel_id, user_map))
         except Exception as e:
@@ -69,3 +63,7 @@ async def generate_slack_documents():
         await cognee.remember(doc, dataset_name="company_knowledge")
 
     console.print("[green]Done fetching and storing Slack messages.[/green]")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(generate_slack_documents())

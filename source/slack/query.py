@@ -16,8 +16,8 @@ async def query_slack(query_request: QueryRequest):
     for item in result:
         if hasattr(item, "text") and item.text:
             texts.append(item.text)
-        elif hasattr(item, "content") and item.content:
-            texts.append(item.content)
+        # elif hasattr(item, "content") and item.content:
+        #     texts.append(item.content)
 
     return texts
     

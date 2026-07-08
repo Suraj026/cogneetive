@@ -34,9 +34,10 @@ def test_graph_returns_404_when_file_missing():
 
 def test_query_returns_results():
     """Test that the /query endpoint returns results when a valid query is provided."""
-    mock_recall = AsyncMock(
-        return_value=["result1", "result2"]
-    )
+    mock_recall = AsyncMock(return_value=[
+    type("FakeResult", (), {"text": "result1"})(),
+    type("FakeResult", (), {"text": "result2"})(),
+    ])
     with patch("source.slack.query.cognee.recall", mock_recall):
         response = client.post(
             "/api/query",
@@ -83,10 +84,11 @@ def test_query_handles_cognee_error():
 
 def test_regenerate_graph_returns_accepted():
     """Test that the /graph/regenerate endpoint returns 202 Accepted."""
-    response = client.post("/api/graph/regenerate")
-    assert response.status_code == 202
-    data = response.json()
-    assert data["message"] == "Graph regeneration started. Check /api/graph after a few moments."
+    with patch("backend.main.generate_graph", new_callable=AsyncMock):
+        response = client.post("/api/graph/regenerate")
+        assert response.status_code == 202
+        data = response.json()
+        assert data["message"] == "Graph regeneration started. Check /api/graph after a few moments."
 
 def test_regenerate_graph_background_task():
     """Test that the /graph/regenerate endpoint adds a background task."""
