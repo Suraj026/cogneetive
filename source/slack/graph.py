@@ -19,7 +19,7 @@ async def generate_graph():
     )
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    await visualize_graph(output_path, dataset="slack_data")
+    await visualize_graph(output_path, dataset="company_knowledge")
     console.print(f"[green]Graph generated and saved to {output_path}[/green]")
 
 async def get_graph_stats(dataset_name: str):

@@ -17,7 +17,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
 
   // Fetch stats on mount, then only on regenerate
   useEffect(() => {
-    fetchGraphStats("slack_data").then((data) => {
+    fetchGraphStats("company_knowledge").then((data) => {
       if (data) setStats(data);
     });
   }, []);
@@ -41,7 +41,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
       for (let attempt = 0; attempt < 6; attempt++) {
         // Wait 1s between retries — gives the background task time to finish
         await new Promise((r) => setTimeout(r, 1000));
-        data = await fetchGraphStats("slack_data");
+        data = await fetchGraphStats("company_knowledge");
         if (data && data.total_nodes > 0) break;
       }
 

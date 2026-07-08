@@ -9,7 +9,7 @@ async def query_slack(query_request: QueryRequest):
     console.print("[green] Cognee query[/green]")
     result = await cognee.recall(
             query_request.query,
-            datasets=["slack_data"],
+            datasets=["company_knowledge"],
         )
 
     texts = []

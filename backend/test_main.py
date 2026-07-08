@@ -47,7 +47,7 @@ def test_query_returns_results():
 
         assert "results" in data
         assert data["results"] == ["result1", "result2"]
-        mock_recall.assert_awaited_once_with("test query", datasets=["slack_data"])
+        mock_recall.assert_awaited_once_with("test query", datasets=["company_knowledge"])
 
 def test_query_returns_422_for_empty_query():
     """Test that the /query endpoint returns 422 when an empty query is provided."""
@@ -96,7 +96,7 @@ def test_regenerate_graph_background_task():
         mock_generate_graph.assert_called_once()
 
 def test_graph_stats_with_dataset():
-    """Test that /api/graph/stats?dataset=slack_data returns scoped stats."""
+    """Test that /api/graph/stats?dataset=company_knowledge returns scoped stats."""
     mock_metrics = {
         "num_nodes": 42,
         "num_edges": 108,
@@ -106,7 +106,7 @@ def test_graph_stats_with_dataset():
         "backend.main.get_graph_stats",
         new=AsyncMock(return_value=mock_metrics),
     ):
-        response = client.get("/api/graph/stats?dataset=slack_data")
+        response = client.get("/api/graph/stats?dataset=company_knowledge")
         assert response.status_code == 200
 
         data = response.json()
@@ -132,7 +132,7 @@ def test_graph_stats_returns_500_on_error():
         "backend.main.get_graph_stats",
         side_effect=Exception("Cognee error"),
     ):
-        response = client.get("/api/graph/stats?dataset=slack_data")
+        response = client.get("/api/graph/stats?dataset=company_knowledge")
         assert response.status_code == 500
         data = response.json()
         assert data["error"] == "stats_error"

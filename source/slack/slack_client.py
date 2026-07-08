@@ -66,6 +66,6 @@ async def generate_slack_documents():
             console.print(f"[red]Error fetching messages from channel {channel_id}: {e}[/red]")
 
     for doc in documents:
-        await cognee.remember(doc, dataset_name="slack_data")
+        await cognee.remember(doc, dataset_name="company_knowledge")
 
     console.print("[green]Done fetching and storing Slack messages.[/green]")
