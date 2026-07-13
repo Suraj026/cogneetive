@@ -12,3 +12,4 @@ wheels/
 .artifacts/
 .pytest_cache/
 sources.py
+source_registry.db

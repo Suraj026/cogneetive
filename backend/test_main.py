@@ -1,5 +1,3 @@
-import os
-import tempfile
 from fastapi.testclient import TestClient
 from unittest.mock import patch, AsyncMock
 from backend.main import app as app2
@@ -10,27 +8,6 @@ def test_app_exists():
     """Test that the FastAPI app is created and running."""
     response = client.get("/")
     assert response.status_code == 200
-
-def test_graph_returns_html_when_file_exists(tmp_path):
-    """Test that the /graph endpoint returns HTML when the graph file exists."""
-    graph_path = tmp_path / "slack_graph.html"
-    graph_path.write_text("<html><body>Graph</body></html>")
-    
-    with patch("backend.main.GRAPH_FILE_PATH", str(graph_path)):
-        response = client.get("/api/graph")
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html; charset=utf-8"
-        assert "Graph" in response.text
-
-def test_graph_returns_404_when_file_missing():
-    """When the graph HTML file doesn't exist, the endpoint should return 404."""
-    missing = os.path.join(tempfile.gettempdir(), "non_existent_graph.html")
-    with patch("backend.main.GRAPH_FILE_PATH", missing):
-        client = TestClient(app2)
-        response = client.get("/api/graph")
-        assert response.status_code == 404
-        data = response.json()
-        assert data["error"] == "graph_not_found"
 
 def test_query_returns_results():
     """Test that the /query endpoint returns results when a valid query is provided."""
@@ -88,7 +65,7 @@ def test_regenerate_graph_returns_accepted():
         response = client.post("/api/graph/regenerate")
         assert response.status_code == 202
         data = response.json()
-        assert data["message"] == "Graph regeneration started. Check /api/graph after a few moments."
+        assert data["message"] == "Graph regeneration started."
 
 def test_regenerate_graph_background_task():
     """Test that the /graph/regenerate endpoint adds a background task."""
@@ -100,8 +77,18 @@ def test_regenerate_graph_background_task():
 def test_graph_stats_with_dataset():
     """Test that /api/graph/stats?dataset=company_knowledge returns scoped stats."""
     mock_metrics = {
-        "num_nodes": 42,
-        "num_edges": 108,
+        "total_nodes": 42,
+        "total_edges": 108,
+        "mean_degree": 5.14,
+        "edge_density": 0.03,
+        "num_connected_components": 3,
+        "sizes_of_connected_components": [30, 8, 4],
+        "num_selfloops": 0,
+        "diameter": -1,
+        "avg_shortest_path_length": -1,
+        "avg_clustering": -1,
+        "source_breakdown": {"slack": 2},
+        "last_updated": "2026-07-13T00:00:00",
     }
 
     with patch(
@@ -112,8 +99,10 @@ def test_graph_stats_with_dataset():
         assert response.status_code == 200
 
         data = response.json()
-        assert data["num_nodes"] == 42
-        assert data["num_edges"] == 108
+        assert data["total_nodes"] == 42
+        assert data["total_edges"] == 108
+        assert data["mean_degree"] == 5.14
+        assert data["source_breakdown"]["slack"] == 2
 
 
 def test_graph_stats_dataset_not_found():

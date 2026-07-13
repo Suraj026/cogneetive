@@ -1,8 +1,8 @@
 interface FiltersPanelProps {
-  onGraphQuery: (query: string) => void;
+  onGraphQuery?: (query: string) => void;
 }
 
-export default function FiltersPanel({ onGraphQuery }: FiltersPanelProps) {
+export default function FiltersPanel({ onGraphQuery: _onGraphQuery }: FiltersPanelProps) {
   return (
     <aside className="w-[340px] h-full z-10 flex flex-col bg-surface-glass backdrop-blur-[20px] border-l border-border-low shrink-0">
       {/* Header */}
