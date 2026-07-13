@@ -74,6 +74,33 @@ class SourceRegistry:
         finally:
             await conn.close()
 
+    async def get_all(self) -> dict[str, list[str]]:
+        """Get all entity→sources mappings."""
+        conn = await self._get_conn()
+        try:
+            cursor = await conn.execute(
+                "SELECT entity_name, source FROM entity_sources ORDER BY entity_name"
+            )
+            rows = await cursor.fetchall()
+            result: dict[str, list[str]] = {}
+            for entity, source in rows:
+                result.setdefault(entity, []).append(source)
+            return result
+        finally:
+            await conn.close()
+
+    async def get_source_counts(self) -> dict[str, int]:
+        """Get count of distinct entities per source."""
+        conn = await self._get_conn()
+        try:
+            cursor = await conn.execute(
+                "SELECT source, COUNT(DISTINCT entity_name) FROM entity_sources GROUP BY source"
+            )
+            rows = await cursor.fetchall()
+            return {row[0]: row[1] for row in rows}
+        finally:
+            await conn.close()
+
     async def close(self) -> None:
         """No-op for aiosqlite (connections are closed per-op). Kept for API consistency."""
         pass
