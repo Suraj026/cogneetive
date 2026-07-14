@@ -45,11 +45,11 @@ def fetch_slack_channel(client: WebClient, channel_id: str, user_map: dict) -> s
     return "".join(lines)
 
 
-async def generate_slack_documents(
+async def ingest(
     documents: list[str] | None = None,
     registry: SourceRegistry | None = None,
 ):
-    """Generate documents from Slack messages.
+    """Ingest Slack messages into Cognee.
 
     Args:
         documents: Optional pre-built docs (for testing). If None, fetches from Slack API.
@@ -100,6 +100,7 @@ async def generate_slack_documents(
 
     console.print("[green]Done fetching and storing Slack messages.[/green]")
 
+
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(generate_slack_documents())
+    asyncio.run(ingest())
