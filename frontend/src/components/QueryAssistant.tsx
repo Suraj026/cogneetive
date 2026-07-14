@@ -7,6 +7,7 @@ interface Message {
 }
 
 interface QueryAssistantProps {
+  width: number;
   onQuery: (question: string) => Promise<void>;
   isLoading: boolean;
   lastResults: string[];
@@ -14,6 +15,7 @@ interface QueryAssistantProps {
 }
 
 export default function QueryAssistant({
+  width,
   onQuery,
   isLoading,
   lastResults,
@@ -82,7 +84,7 @@ export default function QueryAssistant({
   };
 
   return (
-    <aside className="w-[420px] h-full z-10 flex flex-col bg-surface-glass backdrop-blur-[20px] border-r border-border-low shrink-0">
+    <aside className="h-full z-10 flex flex-col bg-surface-glass backdrop-blur-[20px] border-r border-border-low shrink-0" style={{ width }}>
       {/* Header */}
       <div className="px-6 py-5 border-b border-border-low flex items-center justify-between">
         <div>
@@ -92,9 +94,6 @@ export default function QueryAssistant({
             </span>
             Query Assistant
           </h2>
-          <p className="text-[12px] font-mono text-on-surface-variant mt-1">
-            NLP-to-Cypher Engine
-          </p>
         </div>
       </div>
 
@@ -175,7 +174,7 @@ export default function QueryAssistant({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type natural language query..."
+            placeholder="Ask a question..."
             disabled={isLoading}
             className="w-full bg-surface-base border border-outline-variant rounded-lg pl-3 pr-10 py-2.5 text-[14px] font-mono text-on-surface focus:outline-none focus:border-node-active focus:ring-1 focus:ring-node-active placeholder:text-on-surface-variant transition-all disabled:opacity-50"
           />
