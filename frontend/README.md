@@ -1,75 +1,38 @@
-# React + TypeScript + Vite
+# `frontend/` — React + Vite SPA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend is a single-page application built with **React 19**, **Vite**, and **TypeScript**. It visualizes the knowledge graph using **Sigma.js v2** with **Graphology** for graph data management and layout.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Structure
 
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+src/
+├── api/
+│   └── client.ts          # API client — all backend calls
+├── components/
+│   ├── GraphCanvas.tsx     # Interactive sigma.js graph visualization
+│   ├── QueryAssistant.tsx  # Natural-language query sidebar
+│   └── FiltersPanel.tsx    # Filter controls panel
+├── App.tsx                 # Root layout — assembles all components
+├── main.tsx                # Vite entry point
+└── index.css               # Global styles
 ```
+
+## Files
+
+| File | What it does |
+|------|-------------|
+| `src/main.tsx` | **Entry point.** Mounts the React app into the DOM. |
+| `src/App.tsx` | **Root layout.** Composes the three panels: QueryAssistant (left), GraphCanvas (center), FiltersPanel (right). Manages shared state (query results, refresh key, loading/error). |
+| `src/index.css` | **Global styles.** Dark theme, layout grid, scrollbar styling, tooltip styles. |
+| `src/api/client.ts` | **API client.** Typed functions for every backend endpoint: `postQuery()`, `fetchGraphData()`, `fetchGraphStats()`, `regenerateGraph()`. Includes `GraphData` TypeScript types. |
+| `src/components/GraphCanvas.tsx` | **Sigma.js graph visualization.** Loads graph data from `/api/graph/data`, runs ForceAtlas2 layout, renders with sigma.js. Supports three visualization modes: Source (color by origin), Type (color by entity type), Degree (size by connectivity). Click-to-highlight neighbors with dimming. Hover tooltips. |
+| `src/components/QueryAssistant.tsx` | **Query sidebar.** Chat-like interface for sending natural-language queries to the backend. Displays results as a scrollable list. |
+| `src/components/FiltersPanel.tsx` | **Filter controls.** UI for filtering the graph by source (Slack, etc.). Communication with GraphCanvas happens via `App.tsx` state. |
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server with HMR |
+| `npm run build` | TypeScript check + production build |
+| `npm run preview` | Preview the production build locally |

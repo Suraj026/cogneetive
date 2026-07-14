@@ -14,7 +14,7 @@ interface GraphCanvasProps {
   refreshKey: number;
 }
 
-// ── Color Palettes ──────────────────────────────────────
+// Color Palettes 
 
 const SOURCE_COLORS: Record<string, string> = {
   slack: "#6C5CE7",
@@ -41,7 +41,7 @@ interface NodeInfo {
   neighbors: number;
 }
 
-// ── Graph Builder ───────────────────────────────────────
+// Graph Builder 
 
 function buildGraphologyGraph(data: GraphData): Graph {
   const graph = new Graph({ type: "undirected", multi: true });
@@ -82,7 +82,7 @@ function buildGraphologyGraph(data: GraphData): Graph {
   return graph;
 }
 
-// ── Apply Visualization Mode ────────────────────────────
+// Apply Visualization Mode 
 
 function applyVizMode(
   graph: Graph,
@@ -147,12 +147,12 @@ function applyVizMode(
   });
 }
 
-// ── Helper: format a number nicely ──────────────────────
+// Helper: format a number nicely 
 
 const fmt = (v: number | null | undefined | string): string =>
   v != null && v !== -1 ? String(v) : "—";
 
-// ── Main Component ──────────────────────────────────────
+// Main Component 
 
 export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -173,8 +173,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [nodeInfo, setNodeInfo] = useState<NodeInfo | null>(null);
 
-  // ── Load graph data ────────────────────────────────────
-
+  // Load graph data
   const loadGraph = useCallback(async () => {
     const data = await fetchGraphData();
     if (!data) return;
@@ -215,7 +214,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
         maxCameraRatio: 10,
       });
 
-      // ── Click handler ──
+      // Click handler
       sigma.on("clickNode", (event) => {
         const nodeId = event.node;
         const attrs = graph.getNodeAttributes(nodeId);
@@ -252,7 +251,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
     }
   }, []);
 
-  // ── Rebuild on refreshKey change ───────────────────────
+  // Rebuild on refreshKey change
 
   useEffect(() => {
     loadGraph();
@@ -261,7 +260,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
     };
   }, [refreshKey, loadGraph]);
 
-  // ── Re-apply viz mode when mode or sources change ─────
+  // Re-apply viz mode when mode or sources change
 
   useEffect(() => {
     const graph = graphRef.current;
@@ -285,7 +284,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
     sigma.refresh();
   }, [vizMode, activeSources, selectedNode]);
 
-  // ── Regenerate ─────────────────────────────────────────
+  // Regenerate
 
   const handleRegenerate = useCallback(async () => {
     setIsRegenerating(true);
@@ -308,7 +307,7 @@ export default function GraphCanvas({ refreshKey }: GraphCanvasProps) {
     }
   }, [loadGraph]);
 
-  // ── Render ─────────────────────────────────────────────
+  // Render
 
   return (
     <section className="flex-1 relative z-10 flex flex-col overflow-hidden">
