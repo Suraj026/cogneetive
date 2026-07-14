@@ -10,8 +10,7 @@ src/
 │   └── client.ts          # API client — all backend calls
 ├── components/
 │   ├── GraphCanvas.tsx     # Interactive sigma.js graph visualization
-│   ├── QueryAssistant.tsx  # Natural-language query sidebar
-│   └── FiltersPanel.tsx    # Filter controls panel
+│   └── QueryAssistant.tsx  # Natural-language query sidebar
 ├── App.tsx                 # Root layout — assembles all components
 ├── main.tsx                # Vite entry point
 └── index.css               # Global styles
@@ -22,12 +21,11 @@ src/
 | File | What it does |
 |------|-------------|
 | `src/main.tsx` | **Entry point.** Mounts the React app into the DOM. |
-| `src/App.tsx` | **Root layout.** Composes the three panels: QueryAssistant (left), GraphCanvas (center), FiltersPanel (right). Manages shared state (query results, refresh key, loading/error). |
+| `src/App.tsx` | **Root layout.** Composes QueryAssistant (left sidebar) and GraphCanvas (main area). Manages shared state (query results, refresh key, loading/error). |
 | `src/index.css` | **Global styles.** Dark theme, layout grid, scrollbar styling, tooltip styles. |
 | `src/api/client.ts` | **API client.** Typed functions for every backend endpoint: `postQuery()`, `fetchGraphData()`, `fetchGraphStats()`, `regenerateGraph()`. Includes `GraphData` TypeScript types. |
 | `src/components/GraphCanvas.tsx` | **Sigma.js graph visualization.** Loads graph data from `/api/graph/data`, runs ForceAtlas2 layout, renders with sigma.js. Supports three visualization modes: Source (color by origin), Type (color by entity type), Degree (size by connectivity). Click-to-highlight neighbors with dimming. Hover tooltips. |
 | `src/components/QueryAssistant.tsx` | **Query sidebar.** Chat-like interface for sending natural-language queries to the backend. Displays results as a scrollable list. |
-| `src/components/FiltersPanel.tsx` | **Filter controls.** UI for filtering the graph by source (Slack, etc.). Communication with GraphCanvas happens via `App.tsx` state. |
 
 ## Available Scripts
 

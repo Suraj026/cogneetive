@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import GraphCanvas from "./components/GraphCanvas";
 import QueryAssistant from "./components/QueryAssistant";
-import FiltersPanel from "./components/FiltersPanel";
 import { postQuery } from "./api/client";
 
 export default function App() {
@@ -37,9 +36,6 @@ export default function App() {
 
       {/* Center: Graph with stats overlay */}
       <GraphCanvas refreshKey={refreshKey} />
-
-      {/* Right: Filters & Settings */}
-      <FiltersPanel onGraphQuery={() => {}} />
     </main>
   );
 }
