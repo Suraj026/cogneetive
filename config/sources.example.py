@@ -1,0 +1,1 @@
+SLACK_CHANNEL_IDS = []  # fill with you slack channel ids
