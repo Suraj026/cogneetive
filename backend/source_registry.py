@@ -104,3 +104,103 @@ class SourceRegistry:
     async def close(self) -> None:
         """No-op for aiosqlite (connections are closed per-op). Kept for API consistency."""
         pass
+
+
+class IngestionCheckpoints:
+    """Tracks last-ingested timestamps per (source, channel_id) for incremental ingestion."""
+    
+    def __init__(self, db_path: str = "source_registry.db"):
+        self.db_path = db_path
+
+    async def _ensure_table(self, conn: aiosqlite.Connection):
+        await conn.execute("""
+        CREATE TABLE IF NOT EXISTS ingestion_checkpoints (
+            source TEXT NOT NULL,
+            channel_id TEXT NOT NULL,
+            channel_name TEXT,
+            last_ts TEXT NOT NULL,
+            total_messages INTEGER DEFAULT 0,
+            last_ingested_at TEXT NOT NULL DEFAULT (datetime('now')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (source, channel_id)
+            )
+        """)
+        await conn.commit()
+
+    async def _get_conn(self) -> aiosqlite.Connection:
+        conn = await aiosqlite.connect(self.db_path)
+        await self._ensure_table(conn)
+        return conn
+
+    async def get_checkpoint(self, source: str, channel_id: str) -> dict | None:
+        """Get the last-ingested timestamp for a given (source, channel_id)."""
+        conn = await self._get_conn()
+        try:
+            cursor = await conn.execute(
+            "SELECT source, channel_id, channel_name, last_ts, total_messages, last_ingested_at, created_at "
+            "FROM ingestion_checkpoints WHERE source = ? AND channel_id = ?",
+            (source, channel_id),
+            )
+            row = await cursor.fetchone()
+            if row is None:
+                return None
+            return {
+                "source": row[0],
+                "channel_id": row[1],
+                "channel_name": row[2],
+                "last_ts": row[3],
+                "total_messages": row[4],
+                "last_ingested_at": row[5],
+                "created_at": row[6],
+            }
+        finally:
+            await conn.close()
+
+    async def upsert_checkpoint(self, source: str, channel_id: str, channel_name: str, last_ts: str, total_messages: int) -> None:
+        """Insert or update a checkpoint."""
+        conn = await self._get_conn()
+        try:
+            await conn.execute(
+                """INSERT INTO ingestion_checkpoints (source, channel_id, channel_name, last_ts, total_messages)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(source, channel_id) DO UPDATE SET
+                    last_ts = excluded.last_ts,
+                    total_messages = excluded.total_messages,
+                    channel_name = excluded.channel_name,
+                    last_ingested_at = datetime('now')""",
+                (source, channel_id, channel_name, last_ts, total_messages),
+            )
+            await conn.commit()
+        finally:
+            await conn.close()
+
+    async def get_all_checkpoints(self, source: str | None = None) -> list[dict]:
+        """Return all checkpoints, optionally filtered by source."""
+        conn = await self._get_conn()
+        try:
+            if source:
+                cursor = await conn.execute(
+                    "SELECT source, channel_id, channel_name, last_ts, total_messages, last_ingested_at, created_at "
+                    "FROM ingestion_checkpoints WHERE source = ? ORDER BY channel_name",
+                    (source,),
+                )
+            else:
+                cursor = await conn.execute(
+                    "SELECT source, channel_id, channel_name, last_ts, total_messages, last_ingested_at, created_at "
+                    "FROM ingestion_checkpoints ORDER BY source, channel_name"
+                )
+            rows = await cursor.fetchall()
+            return [
+                {
+                    "source": row[0],
+                    "channel_id": row[1],
+                    "channel_name": row[2],
+                    "last_ts": row[3],
+                    "total_messages": row[4],
+                    "last_ingested_at": row[5],
+                    "created_at": row[6],
+                }
+                for row in rows
+            ]
+        finally:
+            await conn.close()
