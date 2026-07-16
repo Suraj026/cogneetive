@@ -1,10 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import GraphCanvas from "./components/GraphCanvas";
 import QueryAssistant from "./components/QueryAssistant";
+import IngestionPanel from "./components/IngestionPanel";
 import { postQuery } from "./api/client";
 
 const MIN_SIDEBAR = 280;
 const MAX_SIDEBAR = 800;
+
+type ActiveTab = "query" | "ingestion";
 
 export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(420);
@@ -12,6 +15,7 @@ export default function App() {
   const [results, setResults] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("query");
   const isResizing = useRef(false);
 
   const handleQuery = useCallback(async (question: string) => {
@@ -61,14 +65,47 @@ export default function App() {
 
   return (
     <main className="h-screen w-screen overflow-hidden flex bg-background text-on-background">
-      {/* Left: Query Assistant (chat) */}
-      <QueryAssistant
-        width={sidebarWidth}
-        onQuery={handleQuery}
-        isLoading={isLoading}
-        lastResults={results}
-        lastError={error}
-      />
+      {/* Left sidebar: tabs + content */}
+      <div className="flex flex-col relative" style={{ width: sidebarWidth }}>
+        {/* Tab bar */}
+        <div className="flex border-b border-border-low shrink-0">
+          <button
+            onClick={() => setActiveTab("query")}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === "query"
+                ? "text-primary-cyan border-b-2 border-primary-cyan"
+                : "text-on-surface/60 hover:text-on-surface/80"
+            }`}
+          >
+            💬 Query
+          </button>
+          <button
+            onClick={() => setActiveTab("ingestion")}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === "ingestion"
+                ? "text-primary-cyan border-b-2 border-primary-cyan"
+                : "text-on-surface/60 hover:text-on-surface/80"
+            }`}
+          >
+            📥 Ingest
+          </button>
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 overflow-hidden">
+          {activeTab === "query" ? (
+            <QueryAssistant
+              width={sidebarWidth}
+              onQuery={handleQuery}
+              isLoading={isLoading}
+              lastResults={results}
+              lastError={error}
+            />
+          ) : (
+            <IngestionPanel />
+          )}
+        </div>
+      </div>
 
       {/* Resize handle */}
       <div

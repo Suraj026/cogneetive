@@ -102,3 +102,66 @@ export async function fetchGraphData(
     return null;
   }
 }
+
+// === Ingestion Types ===
+
+export interface IngestionResponse {
+  id: string;
+  status: string;
+}
+
+export interface ChannelResult {
+  status: "ok" | "skipped" | "not_found" | "failed" | "error";
+  channel_id?: string;
+  channel_name?: string;
+  messages_count: number;
+  error?: string;
+}
+
+export interface IngestionStatus {
+  id: string;
+  status: "running" | "completed" | "failed";
+  channels: Record<string, ChannelResult>;
+  error?: string;
+}
+
+export interface IngestionSources {
+  sources: string[];
+}
+
+// === Ingestion API Functions ===
+
+export async function triggerIngestion(
+  source: string,
+  channels: string[],
+): Promise<IngestionResponse> {
+  const res = await fetch("/api/ingestion/trigger", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source, channels }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Ingestion trigger failed");
+  }
+  return res.json();
+}
+
+export async function getIngestionStatus(
+  id: string,
+): Promise<IngestionStatus> {
+  const res = await fetch(`/api/ingestion/status/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Failed to fetch ingestion status");
+  }
+  return res.json();
+}
+
+export async function getIngestionSources(): Promise<IngestionSources> {
+  const res = await fetch("/api/ingestion/sources");
+  if (!res.ok) {
+    throw new Error("Failed to fetch ingestion sources");
+  }
+  return res.json();
+}
