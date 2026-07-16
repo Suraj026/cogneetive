@@ -5,6 +5,7 @@ from backend.models.model import QueryResponse, QueryRequest
 from backend.graph_data import get_graph_data_response, DATASET as DEFAULT_DATASET
 from source.slack.query import query_slack
 from source.slack.graph import DatasetNotFoundError, generate_graph, get_graph_stats
+from source.ingestion.router import router as ingestion_router
 
 app = FastAPI(title="All-in-one")
 
@@ -14,6 +15,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(ingestion_router)
 
 @app.get("/")
 async def root():
